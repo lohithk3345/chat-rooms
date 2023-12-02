@@ -2,19 +2,19 @@ package main
 
 import (
 	"chat/server"
+	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 func main() {
-	// s := server.NewServer()
 	router := gin.Default()
 	router.GET("/createRoom", handleCreateRoom)
 	router.GET("/ws/:id", func(ctx *gin.Context) { handleWS(ctx) })
-	// router.GET("/join:room")
 	http.ListenAndServe(":3000", router)
 }
 
@@ -28,29 +28,41 @@ var (
 var rooms_map = make(map[string]*server.Room)
 var clients = make(map[string]*server.Client)
 
+type ErrorMessage struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+}
+
 func handleWS(ctx *gin.Context) {
+	room_id := ctx.Param("id")
+	log.Println(room_id)
+	room := rooms_map[room_id]
+
+	if room == nil {
+		errorJSON, err := json.Marshal(ErrorMessage{Status: 400, Message: "No Room Found"})
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		ctx.AbortWithStatusJSON(400, errorJSON)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		log.Println("Error in upgrading")
 		return
 	}
 
-	room_id := ctx.Param("id")
-	log.Println(room_id)
-	room := rooms_map[room_id]
-
 	conn.WriteMessage(websocket.TextMessage, []byte(room_id))
 
 	client, id := server.NewClient(room, conn)
-	// s.Handle(conn)
 	clients[id] = client
 
 	client.JoinRoom(room)
 
 	go client.Read()
 	go client.Write()
-
-	select {}
 }
 
 func handleCreateRoom(c *gin.Context) {
