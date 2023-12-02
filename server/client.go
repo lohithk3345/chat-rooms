@@ -31,11 +31,13 @@ func (c *Client) Read() {
 
 		c.room.mu.Lock()
 		for client := range c.room.clients {
-			select {
-			case client.send <- msg:
-			default:
-				close(client.send)
-				delete(c.room.clients, client)
+			if client != c {
+				select {
+				case client.send <- msg:
+				default:
+					close(client.send)
+					delete(c.room.clients, client)
+				}
 			}
 		}
 		c.room.mu.Unlock()
