@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chat/server"
+	"chat/internal/server"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -36,9 +36,9 @@ type ErrorMessage struct {
 func handleWS(ctx *gin.Context) {
 	room_id := ctx.Param("id")
 	log.Println(room_id)
-	room := rooms_map[room_id]
+	room, isPresent := rooms_map[room_id]
 
-	if room == nil {
+	if !isPresent {
 		errorJSON, err := json.Marshal(ErrorMessage{Status: 400, Message: "No Room Found"})
 		if err != nil {
 			log.Println(err)
