@@ -39,10 +39,6 @@ func CreateRoom() (string, error) {
 	return createResponse.Id, nil
 }
 
-func exit(i int) {
-	panic("unimplemented")
-}
-
 func NewClient() *Client {
 	return &Client{
 		Done:   make(chan struct{}),
@@ -85,7 +81,7 @@ func (c *Client) userInput() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Println("Input>")
+		fmt.Print("Input> ")
 		scanner.Scan()
 		input := scanner.Text()
 		if input == "exit" || input == "q" {
