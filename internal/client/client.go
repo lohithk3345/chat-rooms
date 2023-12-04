@@ -11,11 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func CollectArgs() []string {
-	args := os.Args
-	return args
-}
-
 type Client struct {
 	mu     sync.Mutex
 	Done   chan struct{}
