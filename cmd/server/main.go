@@ -3,7 +3,6 @@ package main
 import (
 	"chat/internal/server"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -68,7 +67,11 @@ func handleWS(ctx *gin.Context) {
 func handleCreateRoom(c *gin.Context) {
 	room, id := server.CreateRoom()
 	rooms_map[id] = room
-	res := fmt.Sprintf("Room Created id: %s\n", id)
+	// res := fmt.Sprintf("Room Created id: %s\n", id)
+	type CreateResponse struct {
+		Id string `json:"id"`
+	}
+	res, _ := json.Marshal(&CreateResponse{Id: id})
 	c.Writer.Write([]byte(res))
 	return
 }

@@ -2,8 +2,11 @@ package client
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -11,15 +14,29 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func CollectArgs() []string {
-	args := os.Args
-	return args
-}
-
 type Client struct {
 	mu     sync.Mutex
 	Done   chan struct{}
 	Sender chan []byte
+}
+
+func CreateRoom() (string, error) {
+	uri := fmt.Sprintf("http://localhost:3000/createRoom")
+	response, err := http.Get(uri)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(0)
+	}
+	resp, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "nil", err
+	}
+	type CreateResponse struct {
+		Id string `json:"id"`
+	}
+	var createResponse CreateResponse
+	json.Unmarshal(resp, &createResponse)
+	return createResponse.Id, nil
 }
 
 func NewClient() *Client {
@@ -64,7 +81,7 @@ func (c *Client) userInput() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Println("Input>")
+		fmt.Print("Input> ")
 		scanner.Scan()
 		input := scanner.Text()
 		if input == "exit" || input == "q" {
