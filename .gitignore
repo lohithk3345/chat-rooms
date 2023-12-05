@@ -22,3 +22,8 @@ go.work
 
 # .chat
 chat
+
+# .env
+*.env
+
+README.md

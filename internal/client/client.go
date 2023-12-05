@@ -2,6 +2,7 @@ package client
 
 import (
 	"bufio"
+	"chat/constants"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -21,7 +22,7 @@ type Client struct {
 }
 
 func CreateRoom() (string, error) {
-	uri := fmt.Sprintf("http://localhost:3000/createRoom")
+	uri := fmt.Sprintf("%s/createRoom", constants.HOST_URL)
 	response, err := http.Get(uri)
 	if err != nil {
 		log.Fatal(err)
@@ -55,7 +56,6 @@ func (c *Client) SendMessage(conn *websocket.Conn, msg []byte) {
 }
 
 func (c *Client) ReadMessage(conn *websocket.Conn) {
-	defer close(c.Done)
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
@@ -63,12 +63,12 @@ func (c *Client) ReadMessage(conn *websocket.Conn) {
 			return
 		}
 		fmt.Println("Received> ", string(msg))
-		fmt.Println("Input>")
+		fmt.Print("Input>")
 	}
 }
 
 func Connect(roomId string) (*websocket.Conn, error) {
-	url := fmt.Sprintf("ws://localhost:3000/ws/%s", roomId)
+	url := fmt.Sprintf("%s/%s", constants.WEBSOCKET_URL, roomId)
 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
 		return nil, err
@@ -85,9 +85,9 @@ func (c *Client) userInput() {
 		scanner.Scan()
 		input := scanner.Text()
 		if input == "exit" || input == "q" {
+			c.Done <- struct{}{}
 			return
 		}
-
 		c.mu.Lock()
 		c.Sender <- []byte(input)
 		c.mu.Unlock()
@@ -98,7 +98,6 @@ func (c *Client) Run(conn *websocket.Conn) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	defer close(c.Done)
 	defer close(c.Sender)
 	defer conn.Close()
 
