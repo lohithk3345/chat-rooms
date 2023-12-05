@@ -1,6 +1,6 @@
 package constants
 
-import "chat/internal/config"
+import "chat/config"
 
 var (
 	HOST_URL      = config.EnvMap["HOST_URL"]
