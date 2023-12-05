@@ -2,7 +2,7 @@ package client
 
 import (
 	"bufio"
-	"chat/constants"
+	"chat/utils/constants"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
