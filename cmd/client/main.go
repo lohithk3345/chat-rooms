@@ -65,7 +65,6 @@ var joinCmd = &cobra.Command{
 }
 
 func init() {
-
 	joinCmd.PersistentFlags().StringP("join", "r", "", "Join the room you specify")
 	viper.BindPFlag("join", joinCmd.PersistentFlags().Lookup("join"))
 
